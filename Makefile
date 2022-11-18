@@ -18,6 +18,9 @@
  
 PWDD := $(shell pwd)
 BLOCKS := $(shell basename $(PWDD))
+SRC_DIR := $(addsuffix /src,$(PWDD))
+SRC_FILES := $(notdir $(wildcard src/*.c))
+OBJ_FILES := $(SRC_FILES:.c=.o)
 
 # ---- Include Partitioned Makefiles ----
 
@@ -47,14 +50,36 @@ hex:  ${BLOCKS:=.hex}
 #.SUFFIXES:
 
 ##############################################################################
+# Build rules for object files
+##############################################################################
+
+### Set colors because I like pretty colors
+BLUE  =\033[0;34m
+PURPLE=\033[0;35m
+GREEN =\033[0;32m
+RED   =\033[0;31m
+ORANGE=\033[0;33m
+CYAN  =\033[0;36m
+RESET =\033[0m
+
+%.o : %.c
+	@echo -e "${CYAN} - Building object: $(shell basename $@)${RESET}"
+	$(eval objectfile=$(addprefix build/,$@))
+	$(eval sourcefile=$(addprefix src/,$(notdir $(subst .o,$(SOURCE_SUFFIX),$(objectfile)))))
+	@$(CC) $(CFLAGS) -c -o $(objectfile) $(sourcefile) -Isrc
+
+##############################################################################
 # Compile firmeware
 ##############################################################################
-%.elf: %.c $(LINKER_SCRIPT) $(SOURCE_FILES)
+
+%.elf: %.c $(LINKER_SCRIPT) $(SOURCE_FILES) $(OBJ_FILES)
 	${GCC_PATH}/${GCC_PREFIX}-gcc -g \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
 	-I$(VERILOG_PATH)/common \
+	-I$(PWDD)/src \
+	-I$(PWDD)/build \
 	  $(CPUFLAGS) \
 	-Wl,-Bstatic,-T,$(LINKER_SCRIPT),--strip-debug \
 	-ffreestanding -nostdlib -o $@ $(SOURCE_FILES) $<
@@ -156,7 +181,9 @@ endif
 # ---- Clean ----
 
 clean:
-	\rm  -f *.elf *.hex *.bin *.vvp *.log *.vcd *.lst *.hexe
+	\rm  -f *.elf *.hex *.bin *.vvp *.log *.vcd *.lst *.hexe *.o
+	rm -rf build
+	mkdir build
 
 .PHONY: clean hex all
 
