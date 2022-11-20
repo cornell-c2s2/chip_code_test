@@ -44,7 +44,8 @@ SIM?=RTL
 
 
 all:  clean $(OBJ_FILES) ${BLOCKS:=.vcd} ${BLOCKS:=.lst}
-	mv -f *.elf *.hex *.vvp *.vcd *.lst *.hexe *.o ./build/
+	@echo -e "${PURPLE} - Moving build files to $(PWDD)/build${RESET}"
+	@mv -f *.elf *.hex *.vvp *.vcd *.lst *.hexe *.o ./build/
 
 hex:  ${BLOCKS:=.hex}
 
@@ -71,7 +72,6 @@ RESET =\033[0m
 	-I$(VERILOG_PATH)/dv/ \
 	-I$(VERILOG_PATH)/common \
 	-I$(PWDD)/src \
-	-I$(PWDD)/build \
 	  $(CPUFLAGS) \
 	-Wl,-Bstatic,-T,--strip-debug \
 	-ffreestanding -nostdlib -c -o $@ $<
@@ -81,7 +81,8 @@ RESET =\033[0m
 ##############################################################################
 
 %.elf: %.c $(LINKER_SCRIPT) $(SOURCE_FILES) $(OBJ_FILES)
-	${GCC_PATH}/${GCC_PREFIX}-gcc -g \
+	@echo -e "${ORANGE} - Building binary: $(shell basename $@)${RESET}"
+	@${GCC_PATH}/${GCC_PREFIX}-gcc -g \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
@@ -93,12 +94,14 @@ RESET =\033[0m
 	-ffreestanding -nostdlib -o $@ $(SOURCE_FILES) $(OBJ_FILES) $<
 
 %.lst: %.elf
-	${GCC_PATH}/${GCC_PREFIX}-objdump -d -S $< > $@
+	@echo -e "${ORANGE} - Dumping binary: $(shell basename $@)${RESET}"
+	@${GCC_PATH}/${GCC_PREFIX}-objdump -d -S $< > $@
 
 %.hex: %.elf
-	${GCC_PATH}/${GCC_PREFIX}-objcopy -O verilog $< $@ 
-	# to fix flash base address
-	sed -ie 's/@10/@00/g' $@
+	@echo -e "${ORANGE} - Generating firmware: $(shell basename $@)${RESET}"
+	@${GCC_PATH}/${GCC_PREFIX}-objcopy -O verilog $< $@ 
+	@# to fix flash base address
+	@sed -ie 's/@10/@00/g' $@
 
 %.bin: %.elf
 	${GCC_PATH}/${GCC_PREFIX}-objcopy -O binary $< /dev/stdout | tail -c +1048577 > $@
@@ -109,15 +112,16 @@ RESET =\033[0m
 ##############################################################################
 
 %.vvp: %_tb.v %.hex
+	@echo -e "${GREEN} - Simulating ($(SIM))${RESET}"
 
 ## RTL
 ifeq ($(SIM),RTL)
     ifeq ($(CONFIG),caravel_user_project)
-		iverilog -Ttyp -DFUNCTIONAL -DSIM -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
+		@iverilog -Ttyp -DFUNCTIONAL -DSIM -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
         -f$(VERILOG_PATH)/includes/includes.rtl.caravel \
         -f$(USER_PROJECT_VERILOG)/includes/includes.rtl.$(CONFIG) -o $@ $<
     else
-		iverilog -Ttyp -DFUNCTIONAL -DSIM -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
+		@iverilog -Ttyp -DFUNCTIONAL -DSIM -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
 		-f$(VERILOG_PATH)/includes/includes.rtl.$(CONFIG) \
 		-f$(CARAVEL_PATH)/rtl/__user_project_wrapper.v -o $@ $<
     endif
@@ -126,11 +130,11 @@ endif
 ## GL
 ifeq ($(SIM),GL)
     ifeq ($(CONFIG),caravel_user_project)
-		iverilog -Ttyp -DFUNCTIONAL -DGL -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
+		@iverilog -Ttyp -DFUNCTIONAL -DGL -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
         -f$(VERILOG_PATH)/includes/includes.gl.caravel \
         -f$(USER_PROJECT_VERILOG)/includes/includes.gl.$(CONFIG) -o $@ $<
     else
-		iverilog -Ttyp -DFUNCTIONAL -DGL -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
+		@iverilog -Ttyp -DFUNCTIONAL -DGL -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
         -f$(VERILOG_PATH)/includes/includes.gl.$(CONFIG) \
 		-f$(CARAVEL_PATH)/gl/__user_project_wrapper.v -o $@ $<
     endif
@@ -139,13 +143,13 @@ endif
 ## GL+SDF
 ifeq ($(SIM),GL_SDF)
     ifeq ($(CONFIG),caravel_user_project)
-		cvc64  +interp \
+		@cvc64  +interp \
 		+define+SIM +define+FUNCTIONAL +define+GL +define+USE_POWER_PINS +define+UNIT_DELAY +define+ENABLE_SDF \
 		+change_port_type +dump2fst +fst+parallel2=on   +nointeractive +notimingchecks +mipdopt \
 		-f $(VERILOG_PATH)/includes/includes.gl+sdf.caravel \
 		-f $(USER_PROJECT_VERILOG)/includes/includes.gl+sdf.$(CONFIG) $<
 	else
-		cvc64  +interp \
+		@cvc64  +interp \
 		+define+SIM +define+FUNCTIONAL +define+GL +define+USE_POWER_PINS +define+UNIT_DELAY +define+ENABLE_SDF \
 		+change_port_type +dump2fst +fst+parallel2=on   +nointeractive +notimingchecks +mipdopt \
 		-f $(VERILOG_PATH)/includes/includes.gl+sdf.$(CONFIG) \
@@ -157,16 +161,16 @@ endif
 
 ifeq ($(SIM),RTL)
 	vvp  $<
-	 mv $@ RTL-$@
-	 echo "Object Files: $(OBJ_FILES)"
+	@mv $@ RTL-$@
 endif
 ifeq ($(SIM),GL)
 	vvp  $<
-	 mv $@ GL-$@
+	@mv $@ GL-$@
 endif
 ifeq ($(SIM),GL_SDF)
-	 mv $@ GL_SDF-$@
+	@mv $@ GL_SDF-$@
 endif
+	@echo -e "${GREEN} - Dumping waveform: $(SIM)-$@${RESET}"
 
 # twinwave: RTL-%.vcd GL-%.vcd
 #     twinwave RTL-$@ * + GL-$@ *
