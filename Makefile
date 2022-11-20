@@ -40,10 +40,11 @@ export IVERILOG_DUMPER = fst
 SIM?=RTL
 
 
-.SUFFIXES:
+.SUFFIXES: .o .c
 
 
-all:  ${BLOCKS:=.vcd} ${BLOCKS:=.lst}
+all:  clean ${OBJ_FILES} ${BLOCKS:=.vcd} ${BLOCKS:=.lst}
+	mv *.elf *.hex *.vvp *.vcd *.lst *.hexe ./build/
 
 hex:  ${BLOCKS:=.hex}
 
@@ -64,16 +65,25 @@ RESET =\033[0m
 
 %.o : %.c
 	@echo -e "${CYAN} - Building object: $(shell basename $@)${RESET}"
+	$(eval sourcefile=$(addprefix src/,$<))
 	$(eval objectfile=$(addprefix build/,$@))
-	$(eval sourcefile=$(addprefix src/,$(notdir $(subst .o,$(SOURCE_SUFFIX),$(objectfile)))))
-	@$(CC) $(CFLAGS) -c -o $(objectfile) $(sourcefile) -Isrc
+	@${GCC_PATH}/${GCC_PREFIX}-gcc -g \
+	-I$(FIRMWARE_PATH) \
+	-I$(VERILOG_PATH)/dv/generated \
+	-I$(VERILOG_PATH)/dv/ \
+	-I$(VERILOG_PATH)/common \
+	-I$(PWDD)/src \
+	-I$(PWDD)/build \
+	  $(CPUFLAGS) \
+	-Wl,-Bstatic,-T,--strip-debug \
+	-ffreestanding -nostdlib -c -o $(objectfile) $(sourcefile)
 
 ##############################################################################
 # Compile firmeware
 ##############################################################################
 
 %.elf: %.c $(LINKER_SCRIPT) $(SOURCE_FILES) $(OBJ_FILES)
-	${GCC_PATH}/${GCC_PREFIX}-gcc -g \
+	@${GCC_PATH}/${GCC_PREFIX}-gcc -g \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
@@ -150,6 +160,7 @@ endif
 ifeq ($(SIM),RTL)
 	vvp  $<
 	 mv $@ RTL-$@
+	 echo "Object Files: $(OBJ_FILES)"
 endif
 ifeq ($(SIM),GL)
 	vvp  $<
@@ -181,10 +192,21 @@ endif
 # ---- Clean ----
 
 clean:
-	\rm  -f *.elf *.hex *.bin *.vvp *.log *.vcd *.lst *.hexe *.o
-	rm -rf build
-	mkdir build
+	@echo -e "${PURPLE} - Cleaning build directory${RESET}"
+	@rm  -f *.elf *.hex *.bin *.vvp *.log *.vcd *.lst *.hexe *.o
+	@rm -rf build
+	@mkdir build
 
 .PHONY: clean hex all
+
+#-------------------------------------------------------------------------
+# Makefile debugging
+#-------------------------------------------------------------------------
+# This handy rule will display the contents of any make variable by
+# using the target debug-<varname>. So for example, make debug-junk will
+# display the contents of the junk variable.
+
+debug-% :
+	@echo $* = $($*)
 
 
