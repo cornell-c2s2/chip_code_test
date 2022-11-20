@@ -19,8 +19,8 @@
 PWDD := $(shell pwd)
 BLOCKS := $(shell basename $(PWDD))
 SRC_DIR := $(addsuffix /src,$(PWDD))
-SRC_FILES := $(notdir $(wildcard src/*.c))
-OBJ_FILES := $(SRC_FILES:.c=.o)
+SRC_FILES := $(wildcard src/*.c)
+OBJ_FILES := $(notdir $(SRC_FILES:.c=.o))
 
 # ---- Include Partitioned Makefiles ----
 
@@ -43,8 +43,8 @@ SIM?=RTL
 .SUFFIXES: .o .c
 
 
-all:  clean ${OBJ_FILES} ${BLOCKS:=.vcd} ${BLOCKS:=.lst}
-	mv *.elf *.hex *.vvp *.vcd *.lst *.hexe ./build/
+all:  clean $(OBJ_FILES) ${BLOCKS:=.vcd} ${BLOCKS:=.lst}
+	mv -f *.elf *.hex *.vvp *.vcd *.lst *.hexe *.o ./build/
 
 hex:  ${BLOCKS:=.hex}
 
@@ -63,10 +63,8 @@ ORANGE=\033[0;33m
 CYAN  =\033[0;36m
 RESET =\033[0m
 
-%.o : %.c
+%.o : src/%.c
 	@echo -e "${CYAN} - Building object: $(shell basename $@)${RESET}"
-	$(eval sourcefile=$(addprefix src/,$<))
-	$(eval objectfile=$(addprefix build/,$@))
 	@${GCC_PATH}/${GCC_PREFIX}-gcc -g \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
@@ -76,23 +74,23 @@ RESET =\033[0m
 	-I$(PWDD)/build \
 	  $(CPUFLAGS) \
 	-Wl,-Bstatic,-T,--strip-debug \
-	-ffreestanding -nostdlib -c -o $(objectfile) $(sourcefile)
+	-ffreestanding -nostdlib -c -o $@ $<
 
 ##############################################################################
 # Compile firmeware
 ##############################################################################
 
 %.elf: %.c $(LINKER_SCRIPT) $(SOURCE_FILES) $(OBJ_FILES)
-	@${GCC_PATH}/${GCC_PREFIX}-gcc -g \
+	${GCC_PATH}/${GCC_PREFIX}-gcc -g \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
 	-I$(VERILOG_PATH)/common \
+	-I$(PWDD) \
 	-I$(PWDD)/src \
-	-I$(PWDD)/build \
 	  $(CPUFLAGS) \
 	-Wl,-Bstatic,-T,$(LINKER_SCRIPT),--strip-debug \
-	-ffreestanding -nostdlib -o $@ $(SOURCE_FILES) $<
+	-ffreestanding -nostdlib -o $@ $(SOURCE_FILES) $(OBJ_FILES) $<
 
 %.lst: %.elf
 	${GCC_PATH}/${GCC_PREFIX}-objdump -d -S $< > $@

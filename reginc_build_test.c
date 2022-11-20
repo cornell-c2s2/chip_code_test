@@ -18,6 +18,7 @@
 // This include is relative to $CARAVEL_PATH (see Makefile)
 #include <defs.h>
 #include <stub.c>
+#include "incr.h"
 
 /*
 	RegInc Adhoc Test
@@ -64,9 +65,13 @@ void main()
         // Set data going in
         reg_la0_data = 0x12345678;
 
+        // Verify with FL, as well as to test linking
+
+        uint32_t output = incr( 0x12345678 );
+
         // Observe outputs
         while (1) {
-		if (reg_la1_data_in == 0x12345679) {
+		if (reg_la1_data_in == output) {
 			reg_mprj_datal = 0xB0000000;
 			break;
 		}
