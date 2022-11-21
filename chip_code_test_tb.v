@@ -4,6 +4,7 @@
 
 `default_nettype none
 `timescale 1 ns / 1 ps
+`include "uart_print.v"
 
 //========================================================================
 // Top-Level Test Harness
@@ -37,6 +38,10 @@ module chip_code_test_tb;
 
   wire        gpio;
   wire [37:0] mprj_io;
+  wire        uart_tx;
+  wire        finished;
+
+  assign uart_tx = mprj_io[6];
 
   wire        flash_csb;
   wire        flash_clk;
@@ -87,6 +92,12 @@ module chip_code_test_tb;
     .io3 ()
   );
 
+  // Testbench UART
+	uart_print tbuart (
+		.ser_rx  (uart_tx),
+    .finished(finished)
+	);
+
   //----------------------------------------------------------------------
   // Power-up and reset sequence
   //----------------------------------------------------------------------
@@ -134,7 +145,7 @@ module chip_code_test_tb;
     #1;
 
     // Repeat cycles of 1000 clock edges as needed to complete testbench
-    repeat (75) begin
+    repeat (200) begin
       repeat (1000) @(posedge clock);
     end
     $display("%c[1;31m",27);
@@ -171,14 +182,15 @@ module chip_code_test_tb;
     // Wait for the end of the test
     wait (checkbits[1] == 1'b1);
 
+    // Wait for any UART printing to finish
+    wait (finished);
+
     // See if the test passed or not
     if( checkbits[0] == 1'b1 ) begin
       // Indicate success
 
       $display("%c[1;32m",27);
-      $display("");
       $display("  [ passed ]");
-      $display("");
       $display("%c[0m",27);
       $finish;
     end
@@ -186,9 +198,7 @@ module chip_code_test_tb;
     // Otherwise, indicate failure
 
     $display("%c[1;31m",27);
-    $display("");
     $display("  [ failed ]");
-    $display("");
     $display("%c[0m",27);
     $finish;
 

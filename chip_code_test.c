@@ -17,7 +17,6 @@
 
 // This include is relative to $CARAVEL_PATH (see Makefile)
 #include <defs.h>
-#include <stub.c>
 
 // Local includes
 #include "incr.h"
@@ -64,6 +63,9 @@ void main()
 
         // Check output
         test_reg_eq( reg_la1_data_in, output );
+
+        print_config();
+        print("Hello world!\n");
 
         // If we got here, we pass
         test_pass();

@@ -70,7 +70,7 @@ void test_pass()
 // Signals to the test harness that a test failed
 
 void test_fail()
-{
+{   
     // Get current GPIO data to avoid changing
     uint32_t temp = reg_mprj_datah;
 
@@ -107,4 +107,47 @@ void test_int_eq( int value_1, int value_2 )
     if( value_1 != value_2 ){
         test_fail();
     }
+}
+
+//-----------------------------------------------------------------
+// print_config
+//-----------------------------------------------------------------
+// Configures GPIO 6 to send characters to harness over UART
+
+void print_config()
+{
+    // Enable UART
+    reg_uart_enable = 1;
+
+    // Set GPIO 6 (UART from mgmt) as MGMT Output
+    
+    reg_mprj_io_6 = GPIO_MODE_MGMT_STD_OUTPUT;
+    
+    // Transfer configuration
+    reg_mprj_xfer = 1;
+    while (reg_mprj_xfer == 1);
+}
+
+//-----------------------------------------------------------------
+// putchar
+//-----------------------------------------------------------------
+// Sends a character over UART
+
+void putchar(char c)
+{
+	if (c == '\n')
+		putchar('\r');
+    while (reg_uart_txfull == 1);
+	reg_uart_data = c;
+}
+
+//-----------------------------------------------------------------
+// print
+//-----------------------------------------------------------------
+// Sends a string over UART to be printed by the test harness
+
+void print(const char *p)
+{
+	while (*p)
+		putchar(*(p++));
 }

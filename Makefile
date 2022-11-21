@@ -94,11 +94,11 @@ RESET =\033[0m
 	-ffreestanding -nostdlib -o $@ $(SOURCE_FILES) $(OBJ_FILES) $<
 
 %.lst: %.elf
-	@echo -e "${ORANGE} - Dumping binary: $(shell basename $@)${RESET}"
+	@echo -e "${ORANGE} - Dumping assembly: $(shell basename $@)${RESET}"
 	@${GCC_PATH}/${GCC_PREFIX}-objdump -d -S $< > $@
 
 %.hex: %.elf
-	@echo -e "${ORANGE} - Generating firmware: $(shell basename $@)${RESET}"
+	@echo -e "${ORANGE} - Generating hex firmware: $(shell basename $@)${RESET}"
 	@${GCC_PATH}/${GCC_PREFIX}-objcopy -O verilog $< $@ 
 	@# to fix flash base address
 	@sed -ie 's/@10/@00/g' $@
@@ -119,10 +119,12 @@ ifeq ($(SIM),RTL)
     ifeq ($(CONFIG),caravel_user_project)
 		@iverilog -Ttyp -DFUNCTIONAL -DSIM -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
         -f$(VERILOG_PATH)/includes/includes.rtl.caravel \
+		-I$(PWDD)/test_vc \
         -f$(USER_PROJECT_VERILOG)/includes/includes.rtl.$(CONFIG) -o $@ $<
     else
 		@iverilog -Ttyp -DFUNCTIONAL -DSIM -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
 		-f$(VERILOG_PATH)/includes/includes.rtl.$(CONFIG) \
+		-I$(PWDD)/test_vc \
 		-f$(CARAVEL_PATH)/rtl/__user_project_wrapper.v -o $@ $<
     endif
 endif 
@@ -132,10 +134,12 @@ ifeq ($(SIM),GL)
     ifeq ($(CONFIG),caravel_user_project)
 		@iverilog -Ttyp -DFUNCTIONAL -DGL -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
         -f$(VERILOG_PATH)/includes/includes.gl.caravel \
+		-I$(PWDD)/test_vc \
         -f$(USER_PROJECT_VERILOG)/includes/includes.gl.$(CONFIG) -o $@ $<
     else
 		@iverilog -Ttyp -DFUNCTIONAL -DGL -DUSE_POWER_PINS -DUNIT_DELAY=#1 \
         -f$(VERILOG_PATH)/includes/includes.gl.$(CONFIG) \
+		-I$(PWDD)/test_vc \
 		-f$(CARAVEL_PATH)/gl/__user_project_wrapper.v -o $@ $<
     endif
 endif 
@@ -147,12 +151,14 @@ ifeq ($(SIM),GL_SDF)
 		+define+SIM +define+FUNCTIONAL +define+GL +define+USE_POWER_PINS +define+UNIT_DELAY +define+ENABLE_SDF \
 		+change_port_type +dump2fst +fst+parallel2=on   +nointeractive +notimingchecks +mipdopt \
 		-f $(VERILOG_PATH)/includes/includes.gl+sdf.caravel \
+		-I $(PWDD)/test_vc \
 		-f $(USER_PROJECT_VERILOG)/includes/includes.gl+sdf.$(CONFIG) $<
 	else
 		@cvc64  +interp \
 		+define+SIM +define+FUNCTIONAL +define+GL +define+USE_POWER_PINS +define+UNIT_DELAY +define+ENABLE_SDF \
 		+change_port_type +dump2fst +fst+parallel2=on   +nointeractive +notimingchecks +mipdopt \
 		-f $(VERILOG_PATH)/includes/includes.gl+sdf.$(CONFIG) \
+		-I $(PWDD)/test_vc \
 		-f $CARAVEL_PATH/gl/__user_project_wrapper.v $<
     endif
 endif
