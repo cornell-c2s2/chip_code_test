@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+newname=$1
+
+if [ "$newname" = $(basename $PWD) ]; then
+    echo -e "Rename your directory to a different name!"
+    exit 1
+fi
+
+dirname=$(basename $PWD)
+
+# Change all file names in the directory
+rename $dirname $newname *
+
+# Change all references to the name in the files
+sed -i "s/$dirname/$newname/g" $(find . -maxdepth 1 -type f)
+
+# Change name of directory
+mv ../$dirname ../$newname
+echo -e "\033[0;32mYour test directory has been changed from $dirname to $newname"
+echo -e "(Leave and re-enter the directory to see the change in your terminal prompt)\033[0m"
