@@ -19,6 +19,7 @@
 #include <defs.h>
 #include <stub.c>
 #include "incr.h"
+#include "utils.h"
 
 /*
 	RegInc Adhoc Test
@@ -35,11 +36,6 @@ void main()
         reg_mprj_io_10 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
         reg_mprj_io_11 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
 
-        // GPIO's 28-31 are used as outputs to send signals to outside
-        reg_mprj_io_31 = GPIO_MODE_MGMT_STD_OUTPUT;
-        reg_mprj_io_30 = GPIO_MODE_MGMT_STD_OUTPUT;
-        reg_mprj_io_29 = GPIO_MODE_MGMT_STD_OUTPUT;
-        reg_mprj_io_28 = GPIO_MODE_MGMT_STD_OUTPUT;
 
         // GPIO's 24-27 are used as inputs to receive signals from outside
         reg_mprj_io_27 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
@@ -52,13 +48,16 @@ void main()
         reg_mprj_xfer = 1;
         while (reg_mprj_xfer == 1);
 
+        // Configure test GPIO
+        test_config();
+
 	// Configure LA probes [31:0]  as outputs from the cpu 
         // Configure LA probes [63:32] as outputs from the cpu 
 	reg_la0_oenb = reg_la0_iena = 0xFFFFFFFF;    // [31:0]
 	reg_la1_oenb = reg_la1_iena = 0x00000000;    // [63:32]
 
 	// Flag start of the test
-	reg_mprj_datal = 0xA0000000;
+	test_start();
 
         // Verilog handles resetting the design
 
@@ -69,12 +68,10 @@ void main()
 
         uint32_t output = incr( 0x12345678 );
 
-        // Observe outputs
-        while (1) {
-		if (reg_la1_data_in == output) {
-			reg_mprj_datal = 0xB0000000;
-			break;
-		}
-	}
+        // Check output
+        test_reg_eq( reg_la1_data_in, output );
+
+        // If we got here, we pass
+        test_pass();
 
 }

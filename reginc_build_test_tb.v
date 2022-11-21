@@ -154,14 +154,14 @@ module reginc_build_test_tb;
   wire [3:0] checkbits;
   reg        reset;
 
-  assign checkbits   = mprj_io[31:28];
+  assign checkbits   = mprj_io[37:36];
   assign mprj_io[10] = clk;
   assign mprj_io[11] = reset;
 
   initial begin
 
     // This is how we wait for the firmware to configure the IO ports
-    wait (checkbits == 4'hA);
+    wait (checkbits == 2'h1);
 
     // Reset the design
     reset = 1'b1;
@@ -169,18 +169,28 @@ module reginc_build_test_tb;
     reset = 1'b0;
 
     // Wait for the end of the test
-    wait (checkbits == 4'hB);
+    wait (checkbits[1] == 1'b1);
 
-    // Indicate success
+    // See if the test passed or not
+    if( checkbits[0] == 1'b1 ) begin
+      // Indicate success
 
-    $display("%c[1;32m",27);
+      $display("%c[1;32m",27);
+      $display("");
+      $display("  [ passed ]");
+      $display("");
+      $display("%c[0m",27);
+      $finish;
+    end
+
+    // Otherwise, indicate failure
+
+    $display("%c[1;31m",27);
     $display("");
-    $display("  [ passed ]");
+    $display("  [ failed ]");
     $display("");
     $display("%c[0m",27);
     $finish;
-
-    
 
   end
 
