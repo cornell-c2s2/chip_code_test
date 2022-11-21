@@ -18,16 +18,10 @@
 // This include is relative to $CARAVEL_PATH (see Makefile)
 #include <defs.h>
 #include <stub.c>
+
+// Local includes
 #include "incr.h"
 #include "utils.h"
-
-/*
-	RegInc Adhoc Test
-         - Observe that a basic test is adhered to
-*/
-
-int clk = 0;
-int i;
 
 void main()
 {
