@@ -137,7 +137,8 @@ void putchar(char c)
 {
 	if (c == '\n')
 		putchar('\r');
-    while (reg_uart_txfull == 1);
+    while (reg_uart_txfull == 1){}
+    
 	reg_uart_data = c;
 }
 
