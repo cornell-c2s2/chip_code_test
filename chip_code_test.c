@@ -19,52 +19,16 @@
 #include <defs.h>
 
 // Local includes
-#include "incr.h"
 #include "utils.h"
 
 void main()
 {
 
-        // Clock and Reset signals come from outside the chip
-        reg_mprj_io_10 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-        reg_mprj_io_11 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-
-
-        // GPIO's 24-27 are used as inputs to receive signals from outside
-        reg_mprj_io_27 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-        reg_mprj_io_26 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-        reg_mprj_io_25 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-        reg_mprj_io_24 = GPIO_MODE_MGMT_STD_INPUT_NOPULL;
-        
-
-        /* Apply GPIO configuration */
-        reg_mprj_xfer = 1;
-        while (reg_mprj_xfer == 1);
-
-        // Configure test GPIO
+        // Configurations
         test_config();
-
-	// Configure LA probes [31:0]  as outputs from the cpu 
-        // Configure LA probes [63:32] as outputs from the cpu 
-	reg_la0_oenb = reg_la0_iena = 0xFFFFFFFF;    // [31:0]
-	reg_la1_oenb = reg_la1_iena = 0x00000000;    // [63:32]
-
-	// Flag start of the test
-	test_start();
-
-        // Verilog handles resetting the design
-
-        // Set data going in
-        reg_la0_data = 0x12345678;
-
-        // Verify with FL, as well as to test linking
-
-        uint32_t output = incr( 0x12345678 );
-
-        // Check output
-        test_reg_eq( reg_la1_data_in, output );
-
         print_config();
+        test_start();
+
         print("Hello world!\n");
 
         // If we got here, we pass

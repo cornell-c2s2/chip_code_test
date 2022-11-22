@@ -21,13 +21,8 @@ module chip_code_test_tb;
   reg clock = 1'b0;
   always #12.5 clock = ~clock;
 
-  // User clock
-
-  reg clk = 1'b0;
-  always #12.5 clk = ~clk;
-
   //----------------------------------------------------------------------
-  // Instantiate Caravel and SPI Flash
+  // Instantiate Caravel, SPI Flash, and UART Test Harness
   //----------------------------------------------------------------------
 
   wire        VDD3V3;
@@ -145,7 +140,9 @@ module chip_code_test_tb;
     #1;
 
     // Repeat cycles of 1000 clock edges as needed to complete testbench
-    repeat (200) begin
+    // USER: You can modify to run the test longer if necessary
+
+    repeat (500) begin
       repeat (1000) @(posedge clock);
     end
     $display("%c[1;31m",27);
@@ -162,22 +159,22 @@ module chip_code_test_tb;
   // Execute the code and wait for output
   //----------------------------------------------------------------------
 
-  wire [3:0] checkbits;
-  reg        reset;
+  wire [1:0] checkbits;
 
   assign checkbits   = mprj_io[37:36];
-  assign mprj_io[10] = clk;
-  assign mprj_io[11] = reset;
+
+  //#########################################################
+  // HOOK UP CLK AND ANY RESET PINS HERE
+  //#########################################################
 
   initial begin
 
-    // This is how we wait for the firmware to configure the IO ports
-    wait (checkbits == 2'h1);
+    // This is how we wait for the test to start
+    wait (checkbits == 2'b01);
 
-    // Reset the design
-    reset = 1'b1;
-    #25;
-    reset = 1'b0;
+    //#########################################################
+    // RESET YOUR DESIGN HERE IF NECESSARY
+    //#########################################################
 
     // Wait for the end of the test
     wait (checkbits[1] == 1'b1);
