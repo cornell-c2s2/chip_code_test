@@ -27,7 +27,7 @@ This is a repository for running multi-file C/C++ programs in OpenLANE. This is 
  
  ## Using the test directory
  
- Your C/C++ code should go in `<new_name>.c`; this should be the code that has `main`. In addition, any source files you wish to use (along with their header files) should go in `src`
+ Your C/C++ code should go in `<new_name>.c` or `<new_name>.cpp` for C/C++, respectively; this should be the code that has `main`. In addition, any source files you wish to use (along with their header files) should go in `src`
   - The directory includes `utils.h`, which contains several helper functions for testing and printing with the current test harness setup
     - To use testing functions, you must first call `test_config();`. The same is true for the print function and `print_config();`
     - Testing uses GPIO's 37 and 36, whereas printing uses the hardware UART support in GPIO 6.
