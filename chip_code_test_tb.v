@@ -93,10 +93,10 @@ module chip_code_test_tb;
   );
 
   // Testbench UART
-	uart_print tbuart (
-		.ser_rx  (uart_tx),
+  uart_print tbuart (
+    .ser_rx  (uart_tx),
     .finished(finished)
-	);
+  );
 
   //----------------------------------------------------------------------
   // Power-up and reset sequence
