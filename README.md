@@ -3,10 +3,19 @@ This is a repository for running multi-file C/C++ programs in OpenLANE. This is 
 
 ## Setup
  - Navigate to your test directory within your Caravel User Project and clone the repository
+
  ```bash
   % cd <CARAVEL_DIR>/verilog/dv
   % git clone git@github.com:cornellcustomsiliconsystems/chip_code_test.git
  ```
+
+  - If you are using C code, then the directory is already set up correctly.
+    However, if you are using C++ code, then you should use that branch instead
+
+ ```bash
+  % git checkout cpp
+ ```
+
   - Navigate into the directory, and rename it using `rename` and the references in files to your desired name
     - You will need to re-enter the directory to see the change on your terminal prompt
     
