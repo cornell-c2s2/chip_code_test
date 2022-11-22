@@ -159,7 +159,7 @@ module chip_code_test_tb;
   end
 
   //----------------------------------------------------------------------
-  // Execute the generated VTB cases
+  // Execute the code and wait for output
   //----------------------------------------------------------------------
 
   wire [3:0] checkbits;
