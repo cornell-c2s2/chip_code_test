@@ -18,13 +18,10 @@
  
 PWDD := $(shell pwd)
 BLOCKS := $(shell basename $(PWDD))
-SRC_DIR := $(addsuffix /src,$(PWDD))
-SRC_FILES := $(wildcard src/*.c)
-OBJ_FILES := $(notdir $(SRC_FILES:.c=.o))
-
-# ---- Include Partitioned Makefiles ----
 
 CONFIG = caravel_user_project
+
+# ---- Include Partitioned Makefiles ----
 
 
 include $(MCW_ROOT)/verilog/dv/make/env.makefile
@@ -40,7 +37,7 @@ export IVERILOG_DUMPER = fst
 SIM?=RTL
 
 
-.SUFFIXES: .o .c
+.SUFFIXES:
 
 
 all:  clean $(OBJ_FILES) ${BLOCKS:=.vcd} ${BLOCKS:=.lst}
@@ -49,7 +46,25 @@ all:  clean $(OBJ_FILES) ${BLOCKS:=.vcd} ${BLOCKS:=.lst}
 
 hex:  ${BLOCKS:=.hex}
 
-#.SUFFIXES:
+##############################################################################
+# Language Support
+##############################################################################
+
+# C or CPP
+LANGUAGE?=C
+
+ifeq ($(LANGUAGE), CPP)
+	CC = g++
+	SOURCE_SUFFIX = .cpp
+else ifeq ($(LANGUAGE), C)
+	CC = gcc
+	SOURCE_SUFFIX = .c
+else
+	$(error Language not supported. Please use C or C++)
+endif
+
+SRC_FILES := $(wildcard src/*$(SOURCE_SUFFIX))
+OBJ_FILES := $(notdir $(SRC_FILES:$(SOURCE_SUFFIX)=.o))
 
 ##############################################################################
 # Build rules for object files
@@ -64,9 +79,9 @@ ORANGE=\033[0;33m
 CYAN  =\033[0;36m
 RESET =\033[0m
 
-%.o : src/%.c
+%.o : src/%$(SOURCE_SUFFIX)
 	@echo -e "${CYAN} - Building object: $(shell basename $@)${RESET}"
-	@${GCC_PATH}/${GCC_PREFIX}-gcc -g \
+	@${GCC_PATH}/${GCC_PREFIX}-$(CC) -g \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
@@ -80,9 +95,9 @@ RESET =\033[0m
 # Compile firmeware
 ##############################################################################
 
-%.elf: %.c $(LINKER_SCRIPT) $(SOURCE_FILES) $(OBJ_FILES)
+%.elf: %$(SOURCE_SUFFIX) $(LINKER_SCRIPT) $(SOURCE_FILES) $(OBJ_FILES)
 	@echo -e "${ORANGE} - Building binary: $(shell basename $@)${RESET}"
-	@${GCC_PATH}/${GCC_PREFIX}-gcc -g \
+	@${GCC_PATH}/${GCC_PREFIX}-$(CC) -g \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
