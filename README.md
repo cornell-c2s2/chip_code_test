@@ -24,7 +24,7 @@ This is a repository for running multi-file C/C++ programs in OpenLANE. This is 
   
 ## Building
 
-The test harness is meant to integrate seamlessly with OpenLane. Simply follow their documentation for running tests. For example:
+The test harness is meant to integrate seamlessly with OpenLane. Simply follow [their documentation](https://github.com/efabless/caravel_user_project/blob/main/docs/source/index.rst#running-full-chip-simulation) for running tests. For example:
 ```bash
  % cd <CARAVEL_DIR>
  % make verify-<new_name>-rtl
