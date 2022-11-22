@@ -79,7 +79,7 @@ RESET =\033[0m
 
 %.o : src/%$(SOURCE_SUFFIX)
 	@echo -e "${CYAN} - Building object: $(shell basename $@)${RESET}"
-	@${GCC_PATH}/${GCC_PREFIX}-gcc -g -O3 -Wall \
+	@${GCC_PATH}/${GCC_PREFIX}-gcc -g -O3 -Wall -xc++ \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
