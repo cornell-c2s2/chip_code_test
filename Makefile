@@ -51,13 +51,11 @@ hex:  ${BLOCKS:=.hex}
 ##############################################################################
 
 # C or CPP
-LANGUAGE?=C
+LANGUAGE?=CPP
 
 ifeq ($(LANGUAGE), CPP)
-	CC = g++
 	SOURCE_SUFFIX = .cpp
 else ifeq ($(LANGUAGE), C)
-	CC = gcc
 	SOURCE_SUFFIX = .c
 else
 	$(error Language not supported. Please use C or C++)
@@ -81,7 +79,7 @@ RESET =\033[0m
 
 %.o : src/%$(SOURCE_SUFFIX)
 	@echo -e "${CYAN} - Building object: $(shell basename $@)${RESET}"
-	@${GCC_PATH}/${GCC_PREFIX}-$(CC) -g \
+	@${GCC_PATH}/${GCC_PREFIX}-gcc -g -O3 -Wall \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
@@ -97,7 +95,7 @@ RESET =\033[0m
 
 %.elf: %$(SOURCE_SUFFIX) $(LINKER_SCRIPT) $(SOURCE_FILES) $(OBJ_FILES)
 	@echo -e "${ORANGE} - Building binary: $(shell basename $@)${RESET}"
-	@${GCC_PATH}/${GCC_PREFIX}-$(CC) -g \
+	@${GCC_PATH}/${GCC_PREFIX}-gcc -g -O3 -Wall \
 	-I$(FIRMWARE_PATH) \
 	-I$(VERILOG_PATH)/dv/generated \
 	-I$(VERILOG_PATH)/dv/ \
