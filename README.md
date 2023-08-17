@@ -2,7 +2,7 @@
 This is a repository for running multi-file C/C++ programs in OpenLANE. This is meant to be run within a [Caravel User Project](https://github.com/efabless/caravel_user_project) structure
 
 ## Setup
- - Navigate to your test directory within your Caravel User Project and clone the repository
+ - Navigate to your test directory within your Caravel User Project and clone the repository. **It is important to clone the directory with its given name, `chip_code_test`** - if you wish to rename it later, use the `rename` utility as described below.
 
  ```bash
   % cd <CARAVEL_DIR>/verilog/dv
